@@ -7,7 +7,7 @@ APPLE_COLOR = (255, 0, 0)
 
 pygame.init()
 clock = pygame.time.Clock()
-game_display = pygame.display.set_mode((1920, 1080))
+game_display = pygame.display.set_mode((1000, 1000))
 pygame.display.set_caption('SNEK')
 
 
@@ -25,18 +25,15 @@ class Snek():
         head_xcor = self.snek[0][0]
         head_ycor = self.snek[0][1]
         if self.direction == "RIGHT":
-            new_xcor = head_xcor + BLOCK_SIZE
-            self.snek.insert(0, (new_xcor, head_ycor))
+            head_xcor = head_xcor + BLOCK_SIZE         
         elif self.direction == "LEFT":
-            new_xcor = head_xcor - BLOCK_SIZE
-            self.snek.insert(0, (new_xcor, head_ycor))
+            head_xcor = head_xcor - BLOCK_SIZE          
         elif self.direction == "UP":
-            new_ycor = head_ycor - BLOCK_SIZE
-            self.snek.insert(0, (head_xcor, new_ycor))
+            head_ycor = head_ycor - BLOCK_SIZE          
         elif self.direction == "DOWN":
-            new_ycor = head_ycor + BLOCK_SIZE
-            self.snek.insert(0, (head_xcor, new_ycor))
+            head_ycor = head_ycor + BLOCK_SIZE            
 
+        self.snek.insert(0, (head_xcor, head_ycor))
         self.snek.pop()
 
 class Apple():
