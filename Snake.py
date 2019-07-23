@@ -6,7 +6,7 @@ import random
 #game settings
 GAME_SIZE = 400
 BLOCK_SIZE = GAME_SIZE / 40
-snek_COLOR = (0, 255, 0,)
+SNEK_COLOR = (0, 255, 0,)
 APPLE_COLOR = (255, 0, 0)
 BACKGROUND_COLOR = (0, 0, 0)
 GAME_FPS = 20
@@ -15,6 +15,7 @@ pygame.init()
 clock = pygame.time.Clock()
 game_display = pygame.display.set_mode((GAME_SIZE, GAME_SIZE))
 score_font = pygame.font.SysFont('Comic Sans', int(GAME_SIZE * .065), True)
+title_font = pygame.font.SysFont('Comic Sans', int(GAME_SIZE * .2), True)
 pygame.display.set_caption('SNEK')
 
 
@@ -33,9 +34,9 @@ class snek():
         self.is_alive = True
         self.score = 0
         self.direction = "RIGHT"
-        self.body = [Game_Object(xcor, ycor, snek_COLOR),
-                    Game_Object(xcor - BLOCK_SIZE, ycor, snek_COLOR),
-                    Game_Object(xcor - BLOCK_SIZE * 2, ycor, snek_COLOR)]
+        self.body = [Game_Object(xcor, ycor, SNEK_COLOR),
+                    Game_Object(xcor - BLOCK_SIZE, ycor, SNEK_COLOR),
+                    Game_Object(xcor - BLOCK_SIZE * 2, ycor, SNEK_COLOR)]
         self.previous_last_tail = self.body[len(self.body) - 1]
     def grow(self):
         self.body.append(self.previous_last_tail)
@@ -68,7 +69,7 @@ class snek():
             head_ycor = head_ycor + BLOCK_SIZE
 
 
-        self.body.insert(0, Game_Object(head_xcor, head_ycor, snek_COLOR))
+        self.body.insert(0, Game_Object(head_xcor, head_ycor, SNEK_COLOR))
         self.previous_last_tail = self.body.pop()
     def has_collided_with_wall(self):
         head = self.body[0]
@@ -135,6 +136,22 @@ def pause_game():
 
 snek = snek(BLOCK_SIZE * 5, BLOCK_SIZE * 5)
 apple = Apple(snek.body)
+
+# Title Screen
+show_title_screen = True
+while show_title_screen:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            snek.is_alive = False
+            show_title_screen = False
+        if event.type == pygame.KEYDOWN:
+            show_title_screen = False
+
+    title_text = title_font.render('SNEK', False, SNEK_COLOR)
+    game_display.blit(title_text, (GAME_SIZE / 2 - title_text.get_width() / 2, 50))
+    pygame.display.flip()
+    clock.tick(GAME_FPS)
+    
 
 # Main Game Loop
 while snek.is_alive:
