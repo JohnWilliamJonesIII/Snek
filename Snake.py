@@ -23,9 +23,10 @@ class Game_Object():
         self.xcor = xcor
         self.ycor = ycor
         self.color = color
-    def show(self):
+    def show_as_circle(self):
+        pygame.draw.circle(game_display, self.color, (int(self.xcor + BLOCK_SIZE / 2), int(self.ycor + BLOCK_SIZE / 2)), int(BLOCK_SIZE / 2))
+    def show_as_square(self):
         pygame.draw.rect(game_display, self.color, pygame.Rect(self.xcor, self.ycor, BLOCK_SIZE, BLOCK_SIZE))
-
 
 class snek():
     def __init__(self, xcor, ycor):
@@ -41,7 +42,7 @@ class snek():
 
     def show(self):
         for body_part in self.body:
-            body_part.show()
+            body_part.show_as_square()
     def set_direction_right(self):
         if self.direction != "LEFT":
             self.direction = "RIGHT"
@@ -100,9 +101,9 @@ class Apple():
     def apple_is_on_snek(self, snek_Segment):
         for snek_part in snek_Segment:
             if snek_part.xcor == self.body.xcor and snek_part.ycor == self.body.ycor:
-                return True
+                return True             
     def show(self):
-        self.body.show()
+        self.body.show_as_circle()
 
 def handle_events():
     for event in pygame.event.get():
@@ -147,9 +148,7 @@ while snek.is_alive:
     pygame.display.flip()
 
     if snek.is_alive == False:
-        clock.tick(GAME_FPS)
-
-    
+        clock.tick(.7)
     
     clock.tick(GAME_FPS)
 
