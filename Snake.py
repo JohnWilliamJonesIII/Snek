@@ -22,7 +22,19 @@ clock = pygame.time.Clock()
 game_display = pygame.display.set_mode((GAME_SIZE, GAME_SIZE))
 score_font = pygame.font.SysFont('Comic Sans', int(GAME_SIZE * .065), True)
 title_font = pygame.font.SysFont('Comic Sans', int(GAME_SIZE * .2), True)
-pygame.display.set_caption('SNEK')
+title_press_start_font = pygame.font.SysFont('Comic Sans', int(GAME_SIZE * 0.1), True)
+title_copyright_font = pygame.font.SysFont('Comic Sans', int(GAME_SIZE * 0.05), True)
+pygame.display.set_caption(' SNEK ')
+
+class Color_Cycler():
+    def __init__(self, * colors):
+        self.colors = []
+        for color in colors:
+            self.colors.append(color)
+    def get_next_color(self):
+        next_color = self.colors.pop()
+        self.colors.insert(0, next_color)
+        return next_color
 
 
 class Game_Object():
@@ -35,7 +47,7 @@ class Game_Object():
     def show_as_square(self):
         pygame.draw.rect(game_display, self.color, pygame.Rect(self.xcor + GAP_SIZE, self.ycor + GAP_SIZE, BLOCK_SIZE - GAP_SIZE * 2, BLOCK_SIZE - GAP_SIZE * 2))
 
-class snek():
+class Snek():
     def __init__(self, xcor, ycor):
         self.is_alive = True
         self.score = 0
@@ -63,7 +75,7 @@ class snek():
     def set_direction_down(self):
         if self.direction != "UP":
             self.direction = "DOWN"
-    def move(self):
+    def move(self, color_cycler):
         head_xcor = self.body[0].xcor
         head_ycor = self.body [0].ycor
         if self.direction == "RIGHT":
@@ -75,26 +87,8 @@ class snek():
         elif self.direction == "DOWN":
             head_ycor = head_ycor + BLOCK_SIZE
 
-        RGB_color = BLUE
-        if self.color_counter == 0:
-            RGB_color = BLUE
-        elif self.color_counter == 1:
-            RGB_color = LIME_GREEN
-        elif self.color_counter == 2:
-            RGB_color = YELLOW
-        elif self.color_counter == 4:
-            RGB_color = LIME_GREEN
-        elif self.color_counter == 5:
-            RGB_color = FOREST_GREEN
-        elif self.color_counter == 6:
-            RGB_color = CYAN
 
-        if self.color_counter == 6:
-            self.color_counter = 0
-        else:
-            self.color_counter += 1
-
-        self.body.insert(0, Game_Object(head_xcor, head_ycor, RGB_color))
+        self.body.insert(0, Game_Object(head_xcor, head_ycor, color_cycler.get_next_color()))
         self.previous_last_tail = self.body.pop()
     def refresh_RGB_cycled_colors(self):
         for i in range(len(self.body) -1, 0, -1):
@@ -163,7 +157,8 @@ def pause_game():
             pygame.display.update()
             clock.tick(5)
 
-snek = snek(BLOCK_SIZE * 5, BLOCK_SIZE * 5)
+color_cycler = Color_Cycler(BLUE, LIME_GREEN, FOREST_GREEN, YELLOW, CYAN)
+snek = Snek(BLOCK_SIZE * 5, BLOCK_SIZE * 5)
 apple = Apple(snek.body)
 
 # Title Screen
@@ -176,8 +171,12 @@ while show_title_screen:
         if event.type == pygame.KEYDOWN:
             show_title_screen = False
 
-    title_text = title_font.render('SNEK', False, BLUE)
+    title_text = title_font.render('| SNEK |', False, LIME_GREEN)
+    title_press_start_text = title_press_start_font.render('PRESS TO START', False, BLUE)
+    title_copyright_text = title_copyright_font.render('© JOHN WILLIAM JONES III || TRUECODERS', False, BLUE)
     game_display.blit(title_text, (GAME_SIZE / 2 - title_text.get_width() / 2, 50))
+    game_display.blit(title_press_start_text, (GAME_SIZE / 4 - title_press_start_text.get_width() / 10, 150))
+    game_display.blit(title_copyright_text, (GAME_SIZE / 4 - title_copyright_text.get_width() / 6, 350))
     pygame.display.flip()
     clock.tick(GAME_FPS)
     
@@ -191,7 +190,7 @@ while snek.is_alive:
     game_display.blit(game_display, (0, 0))
 
     if FRAME_COUNTER % 2 == 0:
-        snek.move()
+        snek.move(color_cycler)
         if snek.has_collided_with_wall() or snek.has_collided_with_itself():
             snek.is_alive = False
         if snek.has_eaten_apple(apple):
