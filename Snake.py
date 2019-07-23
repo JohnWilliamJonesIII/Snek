@@ -1,77 +1,158 @@
-#KJHLKJHKLJKLH
-import pygame
 
-BLOCK_SIZE = 20
-SNEK_COLOR = (0, 255, 0,)
+import pygame
+import random
+
+
+#game settings
+GAME_SIZE = 400
+BLOCK_SIZE = GAME_SIZE / 40
+snek_COLOR = (0, 255, 0,)
 APPLE_COLOR = (255, 0, 0)
+BACKGROUND_COLOR = (0, 0, 0)
+GAME_FPS = 20
 
 pygame.init()
 clock = pygame.time.Clock()
-game_display = pygame.display.set_mode((1000, 1000))
+game_display = pygame.display.set_mode((GAME_SIZE, GAME_SIZE))
+score_font = pygame.font.SysFont('Comic Sans', int(GAME_SIZE * .065), True)
 pygame.display.set_caption('SNEK')
 
 
-class Snek():
-    def __init__(self, xcor, ycor):       
-        self.if_alive = True
+class Game_Object():
+    def __init__(self, xcor, ycor, color):
+        self.xcor = xcor
+        self.ycor = ycor
+        self.color = color
+    def show(self):
+        pygame.draw.rect(game_display, self.color, pygame.Rect(self.xcor, self.ycor, BLOCK_SIZE, BLOCK_SIZE))
+
+
+class snek():
+    def __init__(self, xcor, ycor):
+        self.is_alive = True
+        self.score = 0
         self.direction = "RIGHT"
-        self.snek = [(xcor, ycor),
-                    (xcor - BLOCK_SIZE, ycor),
-                    (xcor - BLOCK_SIZE * 2, ycor)]
+        self.body = [Game_Object(xcor, ycor, snek_COLOR),
+                    Game_Object(xcor - BLOCK_SIZE, ycor, snek_COLOR),
+                    Game_Object(xcor - BLOCK_SIZE * 2, ycor, snek_COLOR)]
+        self.previous_last_tail = self.body[len(self.body) - 1]
+    def grow(self):
+        self.body.append(self.previous_last_tail)
+
     def show(self):
-        for snek_Segment in self.snek:
-            pygame.draw.rect(game_display, SNEK_COLOR, pygame.Rect(snek_Segment[0], snek_Segment[1], BLOCK_SIZE, BLOCK_SIZE))
+        for body_part in self.body:
+            body_part.show()
+    def set_direction_right(self):
+        if self.direction != "LEFT":
+            self.direction = "RIGHT"
+    def set_direction_left(self):
+        if self.direction != "RIGHT":
+            self.direction = "LEFT"
+    def set_direction_up(self):
+        if self.direction != "DOWN":
+            self.direction = "UP"
+    def set_direction_down(self):
+        if self.direction != "UP":
+            self.direction = "DOWN"
     def move(self):
-        head_xcor = self.snek[0][0]
-        head_ycor = self.snek[0][1]
+        head_xcor = self.body[0].xcor
+        head_ycor = self.body [0].ycor
         if self.direction == "RIGHT":
-            head_xcor = head_xcor + BLOCK_SIZE         
+            head_xcor = head_xcor + BLOCK_SIZE
         elif self.direction == "LEFT":
-            head_xcor = head_xcor - BLOCK_SIZE          
+            head_xcor = head_xcor - BLOCK_SIZE
         elif self.direction == "UP":
-            head_ycor = head_ycor - BLOCK_SIZE          
+            head_ycor = head_ycor - BLOCK_SIZE
         elif self.direction == "DOWN":
-            head_ycor = head_ycor + BLOCK_SIZE            
+            head_ycor = head_ycor + BLOCK_SIZE
 
-        self.snek.insert(0, (head_xcor, head_ycor))
-        self.snek.pop()
 
+        self.body.insert(0, Game_Object(head_xcor, head_ycor, snek_COLOR))
+        self.previous_last_tail = self.body.pop()
+    def has_collided_with_wall(self):
+        head = self.body[0]
+        if head.xcor < 0 or head.ycor < 0 or head.xcor + BLOCK_SIZE > GAME_SIZE or head.ycor + BLOCK_SIZE > GAME_SIZE:
+            return True
+        return False
+    def has_eaten_apple(self, apple_in_question):
+        head = self.body[0]
+        if head.xcor == apple_in_question.body.xcor and head.ycor == apple_in_question.body.ycor:
+            return True
+        return False
+    def has_collided_with_itself(self):
+        head = self.body[0]
+        for i in range(1, len(self.body)):
+            if head.xcor == self.body[i].xcor and head.ycor == self.body[i].ycor:
+                return True
+        return False
+        
 class Apple():
-    def __init__(self):
-        self.xcor = 30
-        self.ycor = 80
+    def __init__(self, snek_Segment):
+        self.body = self.get_RNG_generated_game_object()
+        while self.apple_is_on_snek(snek_Segment):
+            self.body = self.get_RNG_generated_game_object()
+
+    def get_RNG_generated_game_object(self):
+        xcor = random.randrange(0, GAME_SIZE / BLOCK_SIZE) * BLOCK_SIZE
+        ycor = random.randrange(0, GAME_SIZE / BLOCK_SIZE) * BLOCK_SIZE
+        return Game_Object(xcor, ycor, APPLE_COLOR)
+
+    def apple_is_on_snek(self, snek_Segment):
+        for snek_part in snek_Segment:
+            if snek_part.xcor == self.body.xcor and snek_part.ycor == self.body.ycor:
+                return True
     def show(self):
-        pygame.draw.rect(game_display, APPLE_COLOR, pygame.Rect(self.xcor, self.ycor, BLOCK_SIZE, BLOCK_SIZE))
+        self.body.show()
 
-snek = Snek(145, 200)
-apple = Apple()
-
-#Main Game Loop
-while snek.if_alive:
-
-    for event in pygame.event.get():       
+def handle_events():
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            snek.if_alive = False
+            snek.is_alive = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                snek.direction = "LEFT"
+                snek.set_direction_left()
             elif event.key == pygame.K_RIGHT:
-                snek.direction = "RIGHT"
+                snek.set_direction_right()
             elif event.key == pygame.K_UP:
-                snek.direction = "UP"
+                snek.set_direction_up()
             elif event.key == pygame.K_DOWN:
-                snek.direction = "DOWN"
-            
+                snek.set_direction_down()        
+
+snek = snek(BLOCK_SIZE * 5, BLOCK_SIZE * 5)
+apple = Apple(snek.body)
+
+# Main Game Loop
+while snek.is_alive:
+
+    handle_events()
+
     game_display.blit(game_display, (0, 0))
 
     snek.move()
+    if snek.has_collided_with_wall() or snek.has_collided_with_itself():
+        snek.is_alive = False
+    if snek.has_eaten_apple(apple):
+        snek.grow()
+        snek.score += 1
+        apple = Apple(snek.body)
 
-    game_display.fill((0, 0, 0))
+    game_display.fill(BACKGROUND_COLOR)
     snek.show()
     apple.show()
 
+    score_text = score_font.render(str(snek.score), False, (255, 255, 255))
+    game_display.blit(score_text, (0, 0))
+    pygame.display.set_caption('SNEK | Score = ' + str(snek.score))
+
     pygame.display.flip()
 
-    clock.tick(15)
+    if snek.is_alive == False:
+        clock.tick(GAME_FPS)
 
+    
+    
+    clock.tick(GAME_FPS)
+
+
+pygame.display.quit()
 pygame.quit()
