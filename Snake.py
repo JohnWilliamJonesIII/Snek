@@ -117,7 +117,21 @@ def handle_events():
             elif event.key == pygame.K_UP:
                 snek.set_direction_up()
             elif event.key == pygame.K_DOWN:
-                snek.set_direction_down()        
+                snek.set_direction_down()
+            elif event.key == pygame.K_p:
+                pause_game()             
+
+def pause_game():
+    game_is_paused = True
+    while game_is_paused:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                snek.is_alive = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    game_is_paused = False
+            pygame.display.update()
+            clock.tick(5)
 
 snek = snek(BLOCK_SIZE * 5, BLOCK_SIZE * 5)
 apple = Apple(snek.body)
@@ -143,7 +157,7 @@ while snek.is_alive:
 
     score_text = score_font.render(str(snek.score), False, (255, 255, 255))
     game_display.blit(score_text, (0, 0))
-    pygame.display.set_caption('SNEK | Score = ' + str(snek.score))
+    pygame.display.set_caption('SNEK | Score = ' + str(snek.score) + ' | Press P to pause')
 
     pygame.display.flip()
 
