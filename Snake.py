@@ -7,14 +7,13 @@ import random
 GAME_SIZE = 400
 BLOCK_SIZE = GAME_SIZE / 40
 GAP_SIZE = GAME_SIZE * 0.002
-APPLE_COLOR = (255, 50, 75)
+APPLE_COLOR = (255, 25, 55)
 BACKGROUND_COLOR = (0, 0, 0)
-RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 LIME_GREEN = (0, 255, 0)
 FOREST_GREEN = (0, 150, 0)
 BLUE = (0, 0, 255)
-CYAN = (0, 125, 255)
+CYAN = (0, 255, 255)
 GAME_FPS = 40
 
 pygame.init()
@@ -31,10 +30,21 @@ class Color_Cycler():
         self.colors = []
         for color in colors:
             self.colors.append(color)
+        self.cycle_count = 1
+        self.color_change_frequency = 6
     def get_next_color(self):
-        next_color = self.colors.pop()
-        self.colors.insert(0, next_color)
-        return next_color
+        if self.cycle_count >= self.color_change_frequency:
+            self.cycle_count = 1
+        else:
+            self.cycle_count += 1
+
+        if self.cycle_count == self.color_change_frequency:
+            next_color = self.colors.pop()
+            self.colors.insert(0, next_color)
+            return next_color
+        else:
+            return self.colors[0]
+
 
 
 class Game_Object():
@@ -90,9 +100,10 @@ class Snek():
 
         self.body.insert(0, Game_Object(head_xcor, head_ycor, color_cycler.get_next_color()))
         self.previous_last_tail = self.body.pop()
-    def refresh_RGB_cycled_colors(self):
+    def refresh_RGB_cycled_colors(self, color_cycler):
         for i in range(len(self.body) -1, 0, -1):
             self.body[i].color = self.body[i-1].color
+        self.body[0].color = color_cycler.get_next_color()
         
     def has_collided_with_wall(self):
         head = self.body[0]
@@ -172,11 +183,11 @@ while show_title_screen:
             show_title_screen = False
 
     title_text = title_font.render('| SNEK |', False, LIME_GREEN)
-    title_press_start_text = title_press_start_font.render('PRESS TO START', False, BLUE)
-    title_copyright_text = title_copyright_font.render('© JOHN WILLIAM JONES III || TRUECODERS', False, BLUE)
+    title_press_start_text = title_press_start_font.render('PRESS TO START', False, CYAN)
+    title_copyright_text = title_copyright_font.render('©2019 JOHN WILLIAM JONES III | TRUECODERS', False, BLUE)
     game_display.blit(title_text, (GAME_SIZE / 2 - title_text.get_width() / 2, 50))
     game_display.blit(title_press_start_text, (GAME_SIZE / 4 - title_press_start_text.get_width() / 10, 150))
-    game_display.blit(title_copyright_text, (GAME_SIZE / 4 - title_copyright_text.get_width() / 6, 350))
+    game_display.blit(title_copyright_text, (GAME_SIZE / 5 - title_copyright_text.get_width() / 7, 350))
     pygame.display.flip()
     clock.tick(GAME_FPS)
     
@@ -202,7 +213,7 @@ while snek.is_alive:
     snek.show()
     apple.show()
     FRAME_COUNTER += 1
-    snek.refresh_RGB_cycled_colors()
+    snek.refresh_RGB_cycled_colors(color_cycler)
 
     score_text = score_font.render(str(snek.score), False, (255, 255, 255))
     game_display.blit(score_text, (0, 0))
