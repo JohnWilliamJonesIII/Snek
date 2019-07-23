@@ -6,8 +6,9 @@ import random
 #game settings
 GAME_SIZE = 400
 BLOCK_SIZE = GAME_SIZE / 40
+GAP_SIZE = GAME_SIZE * 0.002
 SNEK_COLOR = (0, 255, 0,)
-APPLE_COLOR = (255, 0, 0)
+APPLE_COLOR = (255, 50, 75)
 BACKGROUND_COLOR = (0, 0, 0)
 GAME_FPS = 20
 
@@ -27,7 +28,7 @@ class Game_Object():
     def show_as_circle(self):
         pygame.draw.circle(game_display, self.color, (int(self.xcor + BLOCK_SIZE / 2), int(self.ycor + BLOCK_SIZE / 2)), int(BLOCK_SIZE / 2))
     def show_as_square(self):
-        pygame.draw.rect(game_display, self.color, pygame.Rect(self.xcor, self.ycor, BLOCK_SIZE, BLOCK_SIZE))
+        pygame.draw.rect(game_display, self.color, pygame.Rect(self.xcor + GAP_SIZE, self.ycor + GAP_SIZE, BLOCK_SIZE - GAP_SIZE * 2, BLOCK_SIZE - GAP_SIZE * 2))
 
 class snek():
     def __init__(self, xcor, ycor):
