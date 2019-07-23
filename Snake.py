@@ -7,10 +7,15 @@ import random
 GAME_SIZE = 400
 BLOCK_SIZE = GAME_SIZE / 40
 GAP_SIZE = GAME_SIZE * 0.002
-SNEK_COLOR = (0, 255, 0,)
 APPLE_COLOR = (255, 50, 75)
 BACKGROUND_COLOR = (0, 0, 0)
-GAME_FPS = 20
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+LIME_GREEN = (0, 255, 0)
+FOREST_GREEN = (0, 150, 0)
+BLUE = (0, 0, 255)
+CYAN = (0, 125, 255)
+GAME_FPS = 40
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -35,10 +40,11 @@ class snek():
         self.is_alive = True
         self.score = 0
         self.direction = "RIGHT"
-        self.body = [Game_Object(xcor, ycor, SNEK_COLOR),
-                    Game_Object(xcor - BLOCK_SIZE, ycor, SNEK_COLOR),
-                    Game_Object(xcor - BLOCK_SIZE * 2, ycor, SNEK_COLOR)]
+        self.body = [Game_Object(xcor, ycor, LIME_GREEN),
+                    Game_Object(xcor - BLOCK_SIZE, ycor, BLUE),
+                    Game_Object(xcor - BLOCK_SIZE * 2, ycor, LIME_GREEN)]
         self.previous_last_tail = self.body[len(self.body) - 1]
+        self.color_counter = 0
     def grow(self):
         self.body.append(self.previous_last_tail)
 
@@ -69,9 +75,31 @@ class snek():
         elif self.direction == "DOWN":
             head_ycor = head_ycor + BLOCK_SIZE
 
+        RGB_color = BLUE
+        if self.color_counter == 0:
+            RGB_color = BLUE
+        elif self.color_counter == 1:
+            RGB_color = LIME_GREEN
+        elif self.color_counter == 2:
+            RGB_color = YELLOW
+        elif self.color_counter == 4:
+            RGB_color = LIME_GREEN
+        elif self.color_counter == 5:
+            RGB_color = FOREST_GREEN
+        elif self.color_counter == 6:
+            RGB_color = CYAN
 
-        self.body.insert(0, Game_Object(head_xcor, head_ycor, SNEK_COLOR))
+        if self.color_counter == 6:
+            self.color_counter = 0
+        else:
+            self.color_counter += 1
+
+        self.body.insert(0, Game_Object(head_xcor, head_ycor, RGB_color))
         self.previous_last_tail = self.body.pop()
+    def refresh_RGB_cycled_colors(self):
+        for i in range(len(self.body) -1, 0, -1):
+            self.body[i].color = self.body[i-1].color
+        
     def has_collided_with_wall(self):
         head = self.body[0]
         if head.xcor < 0 or head.ycor < 0 or head.xcor + BLOCK_SIZE > GAME_SIZE or head.ycor + BLOCK_SIZE > GAME_SIZE:
@@ -148,30 +176,34 @@ while show_title_screen:
         if event.type == pygame.KEYDOWN:
             show_title_screen = False
 
-    title_text = title_font.render('SNEK', False, SNEK_COLOR)
+    title_text = title_font.render('SNEK', False, BLUE)
     game_display.blit(title_text, (GAME_SIZE / 2 - title_text.get_width() / 2, 50))
     pygame.display.flip()
     clock.tick(GAME_FPS)
     
 
 # Main Game Loop
+FRAME_COUNTER = 0
 while snek.is_alive:
 
     handle_events()
 
     game_display.blit(game_display, (0, 0))
 
-    snek.move()
-    if snek.has_collided_with_wall() or snek.has_collided_with_itself():
-        snek.is_alive = False
-    if snek.has_eaten_apple(apple):
-        snek.grow()
-        snek.score += 1
-        apple = Apple(snek.body)
+    if FRAME_COUNTER % 2 == 0:
+        snek.move()
+        if snek.has_collided_with_wall() or snek.has_collided_with_itself():
+            snek.is_alive = False
+        if snek.has_eaten_apple(apple):
+            snek.grow()
+            snek.score += 1
+            apple = Apple(snek.body)
 
     game_display.fill(BACKGROUND_COLOR)
     snek.show()
     apple.show()
+    FRAME_COUNTER += 1
+    snek.refresh_RGB_cycled_colors()
 
     score_text = score_font.render(str(snek.score), False, (255, 255, 255))
     game_display.blit(score_text, (0, 0))
